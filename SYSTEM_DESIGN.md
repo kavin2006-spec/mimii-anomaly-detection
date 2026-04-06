@@ -29,46 +29,46 @@ reactive repair.
 
 ## 2. Architecture Overview
 
+```text
 Raw Audio (.wav)
-│
-▼
-┌─────────────────┐
-│ Feature │ librosa — MFCC, spectral centroid,
-│ Extraction │ bandwidth, RMS, zero-crossing rate
-│ (37ms avg) │ → 34-dimensional feature vector
-└────────┬────────┘
-│
-▼
-┌─────────────────┐
-│ ML Models │ Isolation Forest (baseline)
-│ (0.55ms avg) │ PyTorch Autoencoder (primary)
-│ │ → anomaly score 0.0–1.0
-└────────┬────────┘
-│
-▼
-┌─────────────────┐ ┌──────────────────┐
-│ SQL Server │────▶│ Supabase │
-│ (local) │ │ (cloud sync) │
-│ predictions, │ │ read-only public │
-│ features, │ │ access │
-│ audio_clips │ └──────────────────┘
-└────────┬────────┘
-│
-▼
-┌─────────────────┐
-│ FastAPI │ REST API — 7 endpoints
-│ Backend │ real-time WAV upload + scoring
-│ │ latency tracking per stage
-└────────┬────────┘
-│
-▼
-┌─────────────────┐
-│ React Frontend │ Dashboard · Analytics · Live Demo
-│ │ Recharts visualisations
-│ │ Oscilloscope-inspired UI
-└─────────────────┘
-
----
+      │
+      ▼
+┌─────────────────────┐
+│  Feature Extraction │  librosa — MFCC, spectral centroid,
+│  (37–120ms avg)     │  bandwidth, RMS, zero-crossing rate
+│                     │  → 34-dimensional feature vector
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  ML Models          │  Isolation Forest (baseline)
+│  (0.55ms avg)       │  PyTorch Autoencoder (primary)
+│                     │  → anomaly score 0.0–1.0
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐       ┌──────────────────────┐
+│  SQL Server         │──────▶│  Supabase            │
+│  (local)            │       │  (cloud, read-only)  │
+│  predictions,       │       │  public access       │
+│  features,          │       │  via RLS policies    │
+│  audio_clips        │       └──────────────────────┘
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  FastAPI Backend    │  8 REST endpoints
+│                     │  real-time WAV upload + scoring
+│                     │  per-stage latency tracking
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  React Frontend     │  Dashboard · Analytics · Live Demo · Machines
+│                     │  Recharts visualisations
+│                     │  Industrial oscilloscope aesthetic
+└─────────────────────┘
+```
 
 ## 3. Model Selection — Trade-offs
 
@@ -141,15 +141,20 @@ the neural network. This is the first optimisation target for production.
 The system was evaluated across three signal-to-noise ratios matching real factory
 conditions:
 
-| SNR  | Condition | IF AUC | AE AUC | vs F1 Baseline |
-| ---- | --------- | ------ | ------ | -------------- |
-| +6dB | Clean     | 0.8549 | 0.9216 | +9.1pp ✅      |
-| 0dB  | Moderate  | 0.6964 | 0.8110 | −2.0pp ⚠️      |
-| -6dB | Noisy     | 0.5896 | 0.6845 | −14.7pp ❌     |
+| Machine | SNR  | IF AUC | AE AUC |
+| ------- | ---- | ------ | ------ |
+| Fan     | +6dB | 0.8549 | 0.9216 |
+| Fan     | 0dB  | 0.6964 | 0.8110 |
+| Fan     | -6dB | 0.5896 | 0.6845 |
+| Pump    | +6dB | 0.9742 | 0.9982 |
+| Pump    | 0dB  | 0.9282 | 0.9755 |
+| Pump    | -6dB | 0.8865 | 0.9233 |
 
-**Interpretation:** The system is production-ready at 6dB and borderline useful
-at 0dB. At -6dB, performance degrades to a level that would generate too many
-false positives for practical deployment.
+**Key finding:** Pump anomalies are significantly easier to detect than fan anomalies
+across all noise levels. Even at -6dB, pump detection (0.9233) exceeds fan detection
+at clean 6dB conditions (0.9216). This reflects the physics — pump faults produce
+distinctive low-frequency hydraulic signatures with large acoustic distance from
+normal operation. Fan faults are subtler due to more gradual acoustic deviation.
 
 **Recommended mitigations for -6dB environments:**
 
@@ -203,11 +208,11 @@ GET /analytics/noise-comparison — cross-noise-level comparison
 
 Measured on local hardware (Windows 11, Intel CPU, no GPU):
 
-| Stage              | Latency | Notes                          |
-| ------------------ | ------- | ------------------------------ |
-| Feature extraction | ~37ms   | librosa MFCC — main bottleneck |
-| Model inference    | ~0.55ms | PyTorch CPU forward pass       |
-| Total API response | ~38ms   | Well within 100ms UX threshold |
+| Stage              | Latency                     | Notes                          |
+| ------------------ | --------------------------- | ------------------------------ |
+| Feature extraction | ~37ms (fan) / ~120ms (pump) | librosa MFCC — main bottleneck |
+| Model inference    | ~0.55ms                     | PyTorch CPU forward pass       |
+| Total API response | ~38-125ms                   | Within 200ms UX threshold      |
 
 **Production optimisation path:**
 
@@ -271,9 +276,12 @@ Honest reflection on limitations and next steps:
    traffic rather than the same held-out dataset
 5. **Monitoring dashboard** — track model performance over time as new predictions
    accumulate, alerting when AUC degrades below a threshold
+6. **Threshold calibration** — live demo thresholds were calculated as p95 of
+   normal training errors per machine/noise level combination. A held-out
+   validation set would produce more reliable operating points.
 
 ---
 
 _Built in 7 days as Project 2 of an ML portfolio series._  
 _Project 1: F1 Race Prediction System (AUC 0.831)_  
-_Project 2: MIMII Industrial Anomaly Detection (AUC 0.922 @ 6dB)_
+\_Project 2: MIMII Industrial Anomaly Detection — Fan (AUC 0.922) · Pump (AUC 0.998)
