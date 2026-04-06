@@ -51,40 +51,38 @@ Pump anomalies are significantly easier to detect than fan anomalies across all 
 
 ## Project Structure
 
-mimii-anomaly-detection/
-├── src/
-│   ├── audio/
-│   │   └── features.py          # MFCC, spectral centroid, RMS, ZCR extraction
-│   ├── models/
-│   │   └── autoencoder.py       # PyTorch autoencoder definition
-│   └── database/
-│       └── connection.py        # SQLAlchemy SQL Server connection
-├── api/
-│   ├── main.py                  # FastAPI app + CORS
-│   └── routes/
-│       ├── machines.py          # GET /machines
-│       ├── predictions.py       # POST /predictions/predict
-│       └── analytics.py        # GET /analytics/*
-├── frontend/
-│   └── src/
-│       ├── pages/
-│       │   ├── Dashboard.jsx    # Hero stats + noise level chart
-│       │   ├── Analytics.jsx    # Score distribution + model metrics
-│       │   ├── Upload.jsx       # Live WAV file prediction
-│       │   └── Machines.jsx     # Machine registry
-│       └── api.js               # Axios API calls
-├── notebooks/
-│   ├── 01_eda.ipynb             # Waveform + spectrogram exploration
-│   ├── 02_feature_extraction.ipynb
-│   ├── 03_model_baseline.ipynb  # Isolation Forest
-│   ├── 04_autoencoder.ipynb     # PyTorch autoencoder
-│   ├── 05_noise_levels.ipynb    # Fan 0dB + -6dB
-│   └── 06_pump.ipynb            # Pump all noise levels
-├── data/processed/              # Feature CSVs + result plots
-├── SYSTEM_DESIGN.md             # Architecture decisions + trade-offs
-└── requirements.txt
+**`src/`** — Core Python package
+- `audio/features.py` — MFCC, spectral centroid, RMS, ZCR extraction
+- `models/autoencoder.py` — PyTorch autoencoder (34→8→34)
+- `database/connection.py` — SQLAlchemy SQL Server connection
+
+**`api/`** — FastAPI backend
+- `main.py` — App entry point + CORS
+- `routes/machines.py` — GET /machines
+- `routes/predictions.py` — POST /predictions/predict
+- `routes/analytics.py` — GET /analytics/*
+
+**`frontend/src/`** — React frontend
+- `pages/Dashboard.jsx` — Hero stats + noise level comparison chart
+- `pages/Analytics.jsx` — Score distribution + model metrics
+- `pages/Upload.jsx` — Live WAV file prediction + anomaly gauge
+- `pages/Machines.jsx` — Machine registry table
+- `api.js` — Axios API calls
+
+**`notebooks/`** — Jupyter exploration + training
+- `01_eda.ipynb` — Waveform + spectrogram visualisation
+- `02_feature_extraction.ipynb` — Feature pipeline + SQL Server write
+- `03_model_baseline.ipynb` — Isolation Forest
+- `04_autoencoder.ipynb` — PyTorch autoencoder training
+- `05_noise_levels.ipynb` — Fan 0dB and -6dB
+- `06_pump.ipynb` — Pump all noise levels
+
+**`data/processed/`** — Feature CSVs + result plots  
+**`SYSTEM_DESIGN.md`** — Architecture decisions, trade-offs, failure modes  
+**`requirements.txt`** — Python dependencies
 
 ---
+
 
 ## How It Works
 
