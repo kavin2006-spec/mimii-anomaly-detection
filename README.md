@@ -53,35 +53,35 @@ Pump anomalies are significantly easier to detect than fan anomalies across all 
 
 mimii-anomaly-detection/
 ├── src/
-│ ├── audio/
-│ │ └── features.py # MFCC, spectral centroid, RMS, ZCR extraction
-│ ├── models/
-│ │ └── autoencoder.py # PyTorch autoencoder definition
-│ └── database/
-│ └── connection.py # SQLAlchemy SQL Server connection
+│   ├── audio/
+│   │   └── features.py          # MFCC, spectral centroid, RMS, ZCR extraction
+│   ├── models/
+│   │   └── autoencoder.py       # PyTorch autoencoder definition
+│   └── database/
+│       └── connection.py        # SQLAlchemy SQL Server connection
 ├── api/
-│ ├── main.py # FastAPI app + CORS
-│ └── routes/
-│ ├── machines.py # GET /machines
-│ ├── predictions.py # POST /predictions/predict
-│ └── analytics.py # GET /analytics/\*
+│   ├── main.py                  # FastAPI app + CORS
+│   └── routes/
+│       ├── machines.py          # GET /machines
+│       ├── predictions.py       # POST /predictions/predict
+│       └── analytics.py        # GET /analytics/*
 ├── frontend/
-│ └── src/
-│ ├── pages/
-│ │ ├── Dashboard.jsx # Hero stats + noise level chart
-│ │ ├── Analytics.jsx # Score distribution + model metrics
-│ │ ├── Upload.jsx # Live WAV file prediction
-│ │ └── Machines.jsx # Machine registry
-│ └── api.js # Axios API calls
+│   └── src/
+│       ├── pages/
+│       │   ├── Dashboard.jsx    # Hero stats + noise level chart
+│       │   ├── Analytics.jsx    # Score distribution + model metrics
+│       │   ├── Upload.jsx       # Live WAV file prediction
+│       │   └── Machines.jsx     # Machine registry
+│       └── api.js               # Axios API calls
 ├── notebooks/
-│ ├── 01_eda.ipynb # Waveform + spectrogram exploration
-│ ├── 02_feature_extraction.ipynb
-│ ├── 03_model_baseline.ipynb # Isolation Forest
-│ ├── 04_autoencoder.ipynb # PyTorch autoencoder
-│ ├── 05_noise_levels.ipynb # Fan 0dB + -6dB
-│ └── 06_pump.ipynb # Pump all noise levels
-├── data/processed/ # Feature CSVs + result plots
-├── SYSTEM_DESIGN.md # Architecture decisions + trade-offs
+│   ├── 01_eda.ipynb             # Waveform + spectrogram exploration
+│   ├── 02_feature_extraction.ipynb
+│   ├── 03_model_baseline.ipynb  # Isolation Forest
+│   ├── 04_autoencoder.ipynb     # PyTorch autoencoder
+│   ├── 05_noise_levels.ipynb    # Fan 0dB + -6dB
+│   └── 06_pump.ipynb            # Pump all noise levels
+├── data/processed/              # Feature CSVs + result plots
+├── SYSTEM_DESIGN.md             # Architecture decisions + trade-offs
 └── requirements.txt
 
 ---
